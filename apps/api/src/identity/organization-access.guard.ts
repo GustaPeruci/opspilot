@@ -1,29 +1,32 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { canAccessOrganization, OrganizationMembershipContext, OrganizationPermission } from './authorization';
+import { canAccessOrganization, OrganizationPermission } from './authorization';
+import { MembershipResolver } from './membership-resolver';
 
 export const ORGANIZATION_PERMISSION_KEY = 'organization_permission';
 
-export interface VerifiedOrganizationPrincipal {
+interface AuthenticatedPrincipal {
+  /** Must be assigned by a verified authentication guard, never from request body/headers. */
   userId: string;
-  /** Membership must have been loaded and verified server-side. */
-  membership: OrganizationMembershipContext | null;
 }
 
 interface OrganizationRequest {
-  user?: VerifiedOrganizationPrincipal;
+  user?: AuthenticatedPrincipal;
   params?: Record<string, string | undefined>;
 }
 
 /**
- * Authorization boundary only. A separate authentication guard must verify
- * credentials and populate request.user before this guard runs.
+ * Database-backed authorization boundary. Register this guard only after a
+ * trusted authentication guard that verifies credentials and sets request.user.
  */
 @Injectable()
 export class OrganizationAccessGuard implements CanActivate {
-  constructor(private readonly reflector: Reflector) {}
+  constructor(
+    private readonly reflector: Reflector,
+    private readonly memberships: MembershipResolver,
+  ) {}
 
-  canActivate(context: ExecutionContext): boolean {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const permission = this.reflector.getAllAndOverride<OrganizationPermission | undefined>(
       ORGANIZATION_PERMISSION_KEY,
       [context.getHandler(), context.getClass()],
@@ -33,16 +36,17 @@ export class OrganizationAccessGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest<OrganizationRequest>();
-    if (!request.user) {
+    if (!request.user?.userId) {
       throw new UnauthorizedException('Authentication required');
     }
 
     const organizationId = request.params?.organizationId;
-    if (!organizationId || !request.user.membership || request.user.membership.userId !== request.user.userId) {
-      throw new ForbiddenException('Active organization membership required');
+    if (!organizationId) {
+      throw new ForbiddenException('Organization identifier required');
     }
 
-    if (!canAccessOrganization(request.user.membership, organizationId, permission)) {
+    const membership = await this.memberships.resolve(request.user.userId, organizationId);
+    if (!canAccessOrganization(membership, organizationId, permission)) {
       throw new ForbiddenException('Insufficient organization permissions');
     }
     return true;
