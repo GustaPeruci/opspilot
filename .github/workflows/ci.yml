@@ -55,9 +55,7 @@ jobs:
             # lockfile commit onto the current PR head before pushing.
             git fetch origin "${{ github.head_ref }}"
             git checkout -B "${{ github.head_ref }}" "origin/${{ github.head_ref }}"
-            git show --format= --no-patch HEAD >/dev/null
-            git show 8e76b3e:pnpm-lock.yaml >/dev/null 2>&1 || true
-            git checkout HEAD@{1} -- pnpm-lock.yaml || true
+            git show HEAD@{1}:pnpm-lock.yaml > pnpm-lock.yaml
             if [ ! -f pnpm-lock.yaml ]; then
               echo 'Generated lockfile unavailable after branch checkout' >&2
               exit 1
