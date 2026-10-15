@@ -2,7 +2,7 @@
 
 Open-source enterprise workflow and operations platform built with a modular NestJS backend and Next.js frontend.
 
-> **Status:** Foundation in progress. This repository is not production-ready. Authentication, multi-tenancy and workflow features are not implemented.
+> **Status:** Foundation checks verified in CI. This repository is not production-ready. Identity and tenant authorization primitives exist, but authentication, protected endpoints and operational workflows are not implemented.
 
 ## Technology
 
@@ -27,7 +27,7 @@ pnpm dev
 
 The web application uses `http://localhost:3000`; the API defaults to `http://localhost:4000` and exposes `GET /health` and Swagger at `/docs`.
 
-An initial SQL migration is versioned in `apps/api/prisma/migrations`. The initial migration was applied successfully to the PostgreSQL service in GitHub Actions CI run #22. Local Docker Compose startup has not been independently verified.
+SQL migrations are versioned in `apps/api/prisma/migrations` and applied to the CI PostgreSQL service. Docker Compose PostgreSQL health was verified in GitHub Actions CI run #40. Local developer-machine startup has not been independently verified.
 
 ## Quality checks
 
@@ -39,7 +39,7 @@ pnpm test
 pnpm --filter @opspilot/api test:e2e
 ```
 
-The CI workflow completed successfully in [run #22](https://github.com/GustaPeruci/opspilot/actions/runs/38765825724), including Prisma validation, migration deployment, lint, typecheck, build, unit tests and the API health E2E test. The initial frontend test command is a placeholder and does not provide application coverage. A committed `pnpm-lock.yaml` and frozen installation are still required for reproducible builds.
+The CI workflow completed successfully in [run #40](https://github.com/GustaPeruci/opspilot/actions/runs/38770967294), including frozen-lockfile installation, Prisma validation and migration deployment, lint, typecheck, build, unit tests, API health E2E and Docker Compose PostgreSQL health. The frontend test command is still a placeholder and does not provide application coverage. The authorization primitives are not wired to an authentication mechanism or exposed endpoints.
 
 ## Architecture
 
