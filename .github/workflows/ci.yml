@@ -4,7 +4,7 @@ on:
     branches: [main]
   pull_request:
 permissions:
-  contents: write
+  contents: read
 jobs:
   quality:
     runs-on: ubuntu-latest
@@ -32,7 +32,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm install --frozen-lockfile
       - run: pnpm db:generate
       - run: pnpm --filter @opspilot/api exec prisma validate
       - run: pnpm --filter @opspilot/api exec prisma migrate deploy
@@ -41,26 +41,3 @@ jobs:
       - run: pnpm build
       - run: pnpm test
       - run: pnpm --filter @opspilot/api test:e2e
-      - name: Commit generated dependency lockfile
-        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'feat/foundation'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          if [ -f pnpm-lock.yaml ] && ! git ls-files --error-unmatch pnpm-lock.yaml >/dev/null 2>&1; then
-            git config user.name 'github-actions[bot]'
-            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git add pnpm-lock.yaml
-            git commit -m 'chore(deps): commit generated pnpm lockfile'
-            # PR workflows check out a synthetic merge commit. Rebase the generated
-            # lockfile commit onto the current PR head before pushing.
-            git fetch origin "${{ github.head_ref }}"
-            git checkout -B "${{ github.head_ref }}" "origin/${{ github.head_ref }}"
-            git show HEAD@{1}:pnpm-lock.yaml > pnpm-lock.yaml
-            if [ ! -f pnpm-lock.yaml ]; then
-              echo 'Generated lockfile unavailable after branch checkout' >&2
-              exit 1
-            fi
-            git add pnpm-lock.yaml
-            git commit -m 'chore(deps): commit generated pnpm lockfile'
-            git push origin "HEAD:${{ github.head_ref }}"
-          fi
