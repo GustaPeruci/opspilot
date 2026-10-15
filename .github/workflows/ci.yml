@@ -1,0 +1,50 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: opspilot
+          POSTGRES_PASSWORD: opspilot_ci
+          POSTGRES_DB: opspilot
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U opspilot -d opspilot"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://opspilot:opspilot_ci@localhost:5432/opspilot?schema=public
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate Docker Compose configuration
+        run: docker compose config --quiet
+      - name: Start and verify Docker Compose PostgreSQL
+        run: |
+          POSTGRES_PORT=5433 docker compose -f docker-compose.yml -p opspilot-ci up -d --wait
+          POSTGRES_PORT=5433 docker compose -f docker-compose.yml -p opspilot-ci ps
+          test "$(docker inspect --format='{{.State.Health.Status}}' opspilot-ci-postgres-1)" = healthy
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm db:generate
+      - run: pnpm --filter @opspilot/api exec prisma validate
+      - run: pnpm --filter @opspilot/api exec prisma migrate deploy
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm build
+      - run: pnpm test
+      - run: pnpm --filter @opspilot/api test:e2e
