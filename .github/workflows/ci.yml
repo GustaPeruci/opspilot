@@ -36,8 +36,8 @@ jobs:
         run: docker compose config --quiet
       - name: Start and verify Docker Compose PostgreSQL
         run: |
-          docker compose -f docker-compose.yml -p opspilot-ci up -d --wait
-          docker compose -f docker-compose.yml -p opspilot-ci ps
+          POSTGRES_PORT=5433 docker compose -f docker-compose.yml -p opspilot-ci up -d --wait
+          POSTGRES_PORT=5433 docker compose -f docker-compose.yml -p opspilot-ci ps
           test "$(docker inspect --format='{{.State.Health.Status}}' opspilot-ci-postgres-1)" = healthy
       - run: pnpm install --frozen-lockfile
       - run: pnpm db:generate
