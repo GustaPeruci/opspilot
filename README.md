@@ -10,7 +10,7 @@ Open-source enterprise workflow and operations platform built with a modular Nes
 - Next.js App Router and TypeScript
 - NestJS, Prisma and PostgreSQL
 - Docker Compose for local PostgreSQL
-- Jest, Supertest, ESLint and GitHub Actions (configuration pending verification)
+- Jest, Supertest, ESLint and GitHub Actions
 
 ## Local development
 
@@ -27,7 +27,7 @@ pnpm dev
 
 The web application uses `http://localhost:3000`; the API defaults to `http://localhost:4000` and exposes `GET /health` and Swagger at `/docs`.
 
-An initial SQL migration is versioned in `apps/api/prisma/migrations`. Database application has not yet been verified against a running PostgreSQL instance.
+An initial SQL migration is versioned in `apps/api/prisma/migrations`. The initial migration was applied successfully to the PostgreSQL service in GitHub Actions CI run #22. Local Docker Compose startup has not been independently verified.
 
 ## Quality checks
 
@@ -36,9 +36,10 @@ pnpm lint
 pnpm typecheck
 pnpm build
 pnpm test
+pnpm --filter @opspilot/api test:e2e
 ```
 
-These commands have **not yet been verified in CI**. The initial frontend test command is a placeholder and does not provide application coverage.
+The CI workflow completed successfully in [run #22](https://github.com/GustaPeruci/opspilot/actions/runs/38765825724), including Prisma validation, migration deployment, lint, typecheck, build, unit tests and the API health E2E test. The initial frontend test command is a placeholder and does not provide application coverage. A committed `pnpm-lock.yaml` and frozen installation are still required for reproducible builds.
 
 ## Architecture
 
