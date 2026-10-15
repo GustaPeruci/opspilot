@@ -6,6 +6,22 @@ on:
 jobs:
   quality:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: opspilot
+          POSTGRES_PASSWORD: opspilot_ci
+          POSTGRES_DB: opspilot
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U opspilot -d opspilot"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://opspilot:opspilot_ci@localhost:5432/opspilot?schema=public
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -14,10 +30,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: pnpm
-      # Temporary until the dependency lockfile can be generated and committed.
+      # TODO: commit pnpm-lock.yaml and switch to --frozen-lockfile.
       - run: pnpm install --no-frozen-lockfile
       - run: pnpm db:generate
+      - run: pnpm --filter @opspilot/api exec prisma validate
+      - run: pnpm --filter @opspilot/api exec prisma migrate deploy
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm build
