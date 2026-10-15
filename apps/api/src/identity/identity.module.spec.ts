@@ -1,4 +1,5 @@
 import { ExecutionContext, ForbiddenException } from '@nestjs/common';
+import { ORGANIZATION_PERMISSION_KEY } from './organization-access.guard';
 import { Test } from '@nestjs/testing';
 import { PrismaService } from '../database/prisma.service';
 import { IdentityModule } from './identity.module';
@@ -22,8 +23,10 @@ describe('IdentityModule', () => {
     expect(resolver).toBeDefined();
     expect(guard).toBeDefined();
 
+    const handler = () => undefined;
+    Reflect.defineMetadata(ORGANIZATION_PERMISSION_KEY, 'members:manage', handler);
     const context = {
-      getHandler: () => function handler() {},
+      getHandler: () => handler,
       getClass: () => class TestController {},
       switchToHttp: () => ({
         getRequest: () => ({
@@ -33,9 +36,13 @@ describe('IdentityModule', () => {
       }),
     } as unknown as ExecutionContext;
 
-    // Without permission metadata, access must fail closed before any DB query.
+    // A caller-supplied OWNER role must not grant access across tenants.
+    findUnique.mockResolvedValue(null);
     await expect(guard.canActivate(context)).rejects.toThrow(ForbiddenException);
-    expect(findUnique).not.toHaveBeenCalled();
+    expect(findUnique).toHaveBeenCalledWith({
+      where: { userId_organizationId: { userId: 'user-a', organizationId: 'org-b' } },
+      select: { userId: true, organizationId: true, role: true, status: true },
+    });
     await moduleRef.close();
   });
 });
