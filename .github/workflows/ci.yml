@@ -32,6 +32,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Validate Docker Compose configuration
+        run: docker compose config --quiet
+      - name: Start and verify Docker Compose PostgreSQL
+        run: |
+          docker compose -f docker-compose.yml -p opspilot-ci up -d --wait
+          docker compose -f docker-compose.yml -p opspilot-ci ps
+          test "$(docker inspect --format='{{.State.Health.Status}}' opspilot-ci-postgres-1)" = healthy
       - run: pnpm install --frozen-lockfile
       - run: pnpm db:generate
       - run: pnpm --filter @opspilot/api exec prisma validate
