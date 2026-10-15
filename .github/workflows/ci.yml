@@ -15,6 +15,7 @@ jobs:
         with:
           node-version: '22'
           cache: pnpm
+      # Temporary until the dependency lockfile can be generated and committed.
       - run: pnpm install --no-frozen-lockfile
       - run: pnpm db:generate
       - run: pnpm lint
