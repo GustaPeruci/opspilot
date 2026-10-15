@@ -27,7 +27,7 @@ pnpm dev
 
 The web application uses `http://localhost:3000`; the API defaults to `http://localhost:4000` and exposes `GET /health` and Swagger at `/docs`.
 
-The Prisma migration has not yet been generated. Until it is committed, `prisma:migrate` is a local development step, not a reproducible production migration.
+An initial SQL migration is versioned in `apps/api/prisma/migrations`. Database application has not yet been verified against a running PostgreSQL instance.
 
 ## Quality checks
 
