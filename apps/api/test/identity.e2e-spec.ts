@@ -61,6 +61,14 @@ describe('Identity integration (e2e)', () => {
       .get(`/organizations/${otherOrgId}`).set('Authorization', `Bearer ${token}`)
       .expect(403);
 
+    await prisma.membership.update({
+      where: { userId_organizationId: { userId, organizationId: ownOrgId } },
+      data: { status: 'SUSPENDED' },
+    });
+    await request(app.getHttpServer())
+      .get(`/organizations/${ownOrgId}`).set('Authorization', `Bearer ${token}`)
+      .expect(403);
+
     await request(app.getHttpServer())
       .post('/auth/logout').set('Authorization', `Bearer ${token}`).expect(204);
 
