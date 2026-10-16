@@ -1,4 +1,4 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Header, Param, UseGuards } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { OrganizationAccessGuard } from './organization-access.guard';
 import { RequireOrganizationPermission } from './require-organization-permission.decorator';
@@ -11,6 +11,7 @@ export class OrganizationController {
   constructor(private readonly prisma: PrismaService) {}
 
   @Get(':organizationId')
+  @Header('Cache-Control', 'no-store')
   @RequireOrganizationPermission('organization:read')
   async getOrganization(@Param('organizationId') organizationId: string) {
     return this.prisma.organization.findUniqueOrThrow({
