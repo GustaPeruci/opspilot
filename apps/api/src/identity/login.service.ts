@@ -30,14 +30,17 @@ export class LoginService {
       throw new UnauthorizedException(INVALID);
     }
     if (!valid) {
-      const failures = user.failedLoginAttempts + 1;
-      await this.prisma.user.update({
+      const updated = await this.prisma.user.update({
         where: { id: user.id },
-        data: {
-          failedLoginAttempts: failures,
-          lockedUntil: failures >= MAX_FAILURES ? new Date(now.getTime() + LOCK_MS) : null,
-        },
+        data: { failedLoginAttempts: { increment: 1 } },
+        select: { failedLoginAttempts: true },
       });
+      if (updated.failedLoginAttempts >= MAX_FAILURES) {
+        await this.prisma.user.update({
+          where: { id: user.id },
+          data: { lockedUntil: new Date(now.getTime() + LOCK_MS) },
+        });
+      }
       throw new UnauthorizedException(INVALID);
     }
     await this.prisma.user.update({
