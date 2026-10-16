@@ -23,7 +23,11 @@ enum MembershipStatus {
 model User {
   id          String       @id @default(uuid())
   email       String       @unique
+  passwordHash String?
+  failedLoginAttempts Int @default(0)
+  lockedUntil DateTime?
   memberships Membership[]
+  sessions    Session[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 }
@@ -51,4 +55,18 @@ model Membership {
   @@unique([userId, organizationId])
   @@index([organizationId, status])
   @@index([userId, status])
+}
+
+model Session {
+  id        String    @id @default(uuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([userId, revokedAt])
+  @@index([expiresAt])
 }
