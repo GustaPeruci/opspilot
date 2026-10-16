@@ -16,3 +16,7 @@ The existing organization guard resolves active membership from PostgreSQL, but 
 ## Current limitation
 
 The authorization guard and resolver are not wired to an authentication guard or application routes. They are not a complete security boundary yet. Do not expose protected data until the milestones above are implemented and tested.
+
+## Integration status
+
+The identity branch is based on the merged foundation. Session verification and tenant authorization exist, but no trusted login issuer is exposed yet. Keep the PR in draft until credential verification, abuse controls, integration tests and a clean CI run are complete.
