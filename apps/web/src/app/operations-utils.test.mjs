@@ -8,9 +8,9 @@ const js = ts.transpileModule(source, {
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
 }).outputText;
 const exports = {};
-const module = { exports };
-new Function('module', 'exports', js)(module, exports);
-const { filterItems, summarize, nextStatuses } = module.exports;
+const commonJsModule = { exports };
+new Function('module', 'exports', js)(commonJsModule, exports);
+const { filterItems, summarize, nextStatuses } = commonJsModule.exports;
 const items = [
   { id: '1', title: 'Revisar pedido', description: 'Cliente', status: 'TODO', createdAt: '' },
   { id: '2', title: 'Entregar documentação', description: null, status: 'DONE', createdAt: '' },
