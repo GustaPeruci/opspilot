@@ -3,15 +3,17 @@ export type OrganizationRole = (typeof ORGANIZATION_ROLES)[number];
 
 export type OrganizationPermission =
   | 'organization:read'
+  | 'records:read'
   | 'records:create'
+  | 'records:update'
   | 'members:manage'
   | 'ownership:transfer';
 
 const PERMISSIONS: Readonly<Record<OrganizationRole, ReadonlySet<OrganizationPermission>>> = {
-  OWNER: new Set(['organization:read', 'records:create', 'members:manage', 'ownership:transfer']),
-  ADMIN: new Set(['organization:read', 'records:create', 'members:manage']),
-  MEMBER: new Set(['organization:read', 'records:create']),
-  VIEWER: new Set(['organization:read']),
+  OWNER: new Set(['organization:read', 'records:read', 'records:create', 'records:update', 'members:manage', 'ownership:transfer']),
+  ADMIN: new Set(['organization:read', 'records:read', 'records:create', 'records:update', 'members:manage']),
+  MEMBER: new Set(['organization:read', 'records:read', 'records:create', 'records:update']),
+  VIEWER: new Set(['organization:read', 'records:read']),
 };
 
 /**
