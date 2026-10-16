@@ -2,9 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 
-type Status = 'TODO' | 'IN_PROGRESS' | 'DONE' | 'CANCELED';
-type WorkItem = { id: string; title: string; description: string | null; status: Status; createdAt: string };
-const labels: Record<Status, string> = { TODO: 'A fazer', IN_PROGRESS: 'Em andamento', DONE: 'Concluída', CANCELED: 'Cancelada' };
+import { filterItems, labels, summarize, type Status, type WorkItem } from './operations-utils';
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
 async function api<T>(path: string, token: string, init?: RequestInit): Promise<T> {
@@ -35,31 +33,28 @@ export default function Home() {
   const [filter, setFilter] = useState<Status | ''>('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [view, setView] = useState<'overview' | 'work'>('overview');
+  const [selected, setSelected] = useState<WorkItem | null>(null);
+  const [notice, setNotice] = useState('');
 
   useEffect(() => { document.documentElement.dataset.theme = dark ? 'dark' : 'light'; }, [dark]);
 
   const load = useCallback(async () => {
     if (!token || !organizationId) return;
+    setLoading(true);
     try {
       const data = await api<WorkItem[]>(`/organizations/${encodeURIComponent(organizationId)}/work-items`, token);
       setItems(data);
       setError('');
     } catch (e) { setError(e instanceof Error ? e.message : 'Erro ao carregar tarefas'); }
+    finally { setLoading(false); }
   }, [organizationId, token]);
 
   useEffect(() => { void load(); }, [load]);
 
-  const counts = useMemo(() => ({
-    total: items.length,
-    todo: items.filter(x => x.status === 'TODO').length,
-    progress: items.filter(x => x.status === 'IN_PROGRESS').length,
-    done: items.filter(x => x.status === 'DONE').length,
-  }), [items]);
-
-  const visible = useMemo(() => items.filter(item =>
-    (!filter || item.status === filter) &&
-    (item.title + ' ' + (item.description ?? '')).toLocaleLowerCase('pt-BR').includes(search.toLocaleLowerCase('pt-BR')),
-  ), [items, filter, search]);
+  const counts = useMemo(() => summarize(items), [items]);
+  const visible = useMemo(() => filterItems(items, search, filter), [items, search, filter]);
 
   async function login(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -71,7 +66,7 @@ export default function Home() {
       });
       if (!result.ok) throw new Error('Credenciais inválidas ou conta temporariamente bloqueada.');
       const body = await result.json() as { accessToken: string };
-      setPassword(''); setToken(body.accessToken);
+      setPassword(''); setToken(body.accessToken); setNotice('Sessão iniciada.');
     } catch (e) { setError(e instanceof Error ? e.message : 'Falha no login'); }
     finally { setBusy(false); }
   }
@@ -79,7 +74,7 @@ export default function Home() {
   async function logout() {
     try { if (token) await api<void>('/auth/logout', token, { method: 'POST' }); }
     catch { /* Clear local session even if network logout fails. */ }
-    setToken(''); setItems([]); setPassword(''); setError('');
+    setToken(''); setItems([]); setPassword(''); setError(''); setSelected(null); setNotice('');
   }
 
   async function create(event: FormEvent<HTMLFormElement>) {
@@ -90,7 +85,7 @@ export default function Home() {
       await api<WorkItem>(`/organizations/${encodeURIComponent(organizationId)}/work-items`, token, {
         method: 'POST', body: JSON.stringify({ title: title.trim(), description: description.trim() || undefined }),
       });
-      setTitle(''); setDescription(''); await load();
+      setTitle(''); setDescription(''); await load(); setNotice('Tarefa criada.');
     } catch (e) { setError(e instanceof Error ? e.message : 'Erro ao criar tarefa'); }
     finally { setBusy(false); }
   }
@@ -101,7 +96,7 @@ export default function Home() {
       await api<WorkItem>(`/organizations/${encodeURIComponent(organizationId)}/work-items/${encodeURIComponent(id)}/status`, token, {
         method: 'PATCH', body: JSON.stringify({ status }),
       });
-      await load();
+      await load(); setSelected(null); setNotice('Status atualizado.');
     } catch (e) { setError(e instanceof Error ? e.message : 'Erro ao atualizar tarefa'); }
     finally { setBusy(false); }
   }
@@ -109,19 +104,19 @@ export default function Home() {
   return <div className="op-shell">
     <aside className="op-sidebar">
       <div className="op-brand"><span className="op-mark">O</span> OpsPilot</div>
-      <nav className="op-nav" aria-label="Navegação"><a href="#overview" aria-current="page">Overview</a><a href="#work-items">Work items</a></nav>
+      <nav className="op-nav" aria-label="Navegação"><button type="button" className={view === 'overview' ? 'active' : ''} onClick={() => setView('overview')}>Overview</button><button type="button" className={view === 'work' ? 'active' : ''} onClick={() => setView('work')}>Work items</button></nav>
       <div className="op-sidebar-note">FORGE DESIGN SYSTEM v1.2<br/>OPSPILOT / OPERATIONS</div>
     </aside>
     <main className="op-main" id="overview">
       <header className="op-heading">
-        <div><div className="fg-eyebrow">Operations / Workspace</div><h1>Operations overview</h1><p className="op-subtitle">Acompanhe e gerencie o fluxo de trabalho da sua organização.</p></div>
+        <div><div className="fg-eyebrow">Operations / Workspace</div><h1>{view === 'overview' ? 'Operations overview' : 'Work items'}</h1><p className="op-subtitle">Acompanhe e gerencie o fluxo de trabalho da sua organização.</p></div>
         <button className="fg-button" onClick={() => setDark(!dark)} type="button" aria-label="Alternar tema">{dark ? 'Tema claro' : 'Tema escuro'}</button>
       </header>
 
-      <section className="op-cards" aria-label="Indicadores">
+      {view === 'overview' && <section className="op-cards" aria-label="Indicadores">
         {([['Total', counts.total], ['A fazer', counts.todo], ['Em andamento', counts.progress], ['Concluídas', counts.done]] as const).map(([label, value]) =>
           <div className="fg-panel op-stat" key={label}><div className="op-stat-label">{label}</div><div className="op-stat-value fg-number">{value}</div></div>)}
-      </section>
+      </section>}
 
       {!token ? <section className="fg-panel op-panel" aria-label="Autenticação">
         <h2 className="fg-section-title">Acessar workspace</h2>
@@ -135,7 +130,7 @@ export default function Home() {
         <div className="op-info">Configure a API em NEXT_PUBLIC_API_URL e crie a organização com o script de bootstrap do backend.</div>
       </section> : <section className="fg-panel op-panel" id="work-items">
         <div className="op-toolbar">
-          <h2>Work items</h2>
+          <h2>{view === 'overview' ? 'Tarefas recentes' : 'Todas as tarefas'}</h2>
           <div className="op-controls">
             <input className="fg-input" aria-label="Buscar tarefas" placeholder="Buscar tarefas..." value={search} onChange={e => setSearch(e.target.value)} />
             <select className="fg-input" aria-label="Filtrar status" value={filter} onChange={e => setFilter(e.target.value as Status | '')}>
@@ -151,7 +146,7 @@ export default function Home() {
           <button className="fg-button fg-button--primary" disabled={busy || !title.trim()}>Criar tarefa</button>
         </form>
         <div className="op-table-wrap"><table className="fg-table"><thead><tr><th>Tarefa</th><th>Criada em</th><th>Status</th><th>Ações</th></tr></thead><tbody>
-          {visible.map(item => <tr key={item.id}><td><strong>{item.title}</strong>{item.description && <div className="op-muted">{item.description}</div>}</td>
+          {(view === 'overview' ? visible.slice(0, 5) : visible).map(item => <tr key={item.id}><td><button type="button" className="op-item-link" onClick={() => setSelected(item)}>{item.title}</button>{item.description && <div className="op-muted">{item.description}</div>}</td>
             <td className="fg-number">{new Date(item.createdAt).toLocaleDateString('pt-BR')}</td>
             <td><span className={`op-status op-status--${item.status}`}>{labels[item.status]}</span></td>
             <td><div className="op-actions">
@@ -162,7 +157,10 @@ export default function Home() {
           {!visible.length && <tr><td colSpan={4} className="op-muted">Nenhuma tarefa encontrada.</td></tr>}
         </tbody></table></div>
       </section>}
+      {loading && <div className="op-info" role="status">Carregando tarefas...</div>}
       {error && <div className="op-error" role="alert">{error}</div>}
+      {notice && <div className="op-info" role="status">{notice}</div>}
+      {selected && <div className="op-dialog-backdrop" onClick={() => setSelected(null)}><section className="fg-panel op-detail" role="dialog" aria-modal="true" aria-label="Detalhes da tarefa" onClick={e => e.stopPropagation()}><div className="op-toolbar"><h2>{selected.title}</h2><button type="button" className="fg-button" onClick={() => setSelected(null)}>Fechar</button></div><p className="op-muted">{selected.description || 'Sem descrição'}</p><p><span className={`op-status op-status--${selected.status}`}>{labels[selected.status]}</span></p><p className="op-muted">Criada em {new Date(selected.createdAt).toLocaleString('pt-BR')}</p></section></div>}
       <p className="op-muted" style={{ marginTop: 24, fontSize: 12 }}>OpsPilot · Forge Design System · Dados fornecidos pela API da organização.</p>
     </main>
   </div>;
