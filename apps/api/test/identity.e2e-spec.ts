@@ -76,4 +76,15 @@ describe('Identity integration (e2e)', () => {
       .get(`/organizations/${ownOrgId}`).set('Authorization', `Bearer ${token}`)
       .expect(401);
   });
+
+  it('locks the account after repeated invalid passwords', async () => {
+    for (let attempt = 0; attempt < 5; attempt++) {
+      await request(app.getHttpServer()).post('/auth/login')
+        .send({ email, password: 'invalid-password-123' }).expect(401);
+    }
+    const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
+    expect(user.failedLoginAttempts).toBeGreaterThanOrEqual(5);
+    expect(user.lockedUntil?.getTime()).toBeGreaterThan(Date.now());
+    await request(app.getHttpServer()).post('/auth/login').send({ email, password }).expect(401);
+  });
 });
