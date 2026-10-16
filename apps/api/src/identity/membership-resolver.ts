@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
+import { PrismaService } from '../database/prisma.service';
 import { OrganizationMembershipContext } from './authorization';
 
 /**
@@ -8,7 +8,7 @@ import { OrganizationMembershipContext } from './authorization';
  */
 @Injectable()
 export class MembershipResolver {
-  constructor(private readonly prisma: PrismaClient) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async resolve(userId: string, organizationId: string): Promise<OrganizationMembershipContext | null> {
     if (!userId || !organizationId) return null;
