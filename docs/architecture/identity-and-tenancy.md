@@ -1,6 +1,6 @@
 # Identity and multi-tenancy design (proposal)
 
-Status: design only. No authentication or tenant isolation is implemented yet.
+Status: partially implemented. Password login, opaque sessions and a read-only organization endpoint with tenant membership authorization are implemented in PR #2. Operational business modules, public enrollment, recovery and production security controls remain future work.
 
 ## Domain
 
@@ -11,7 +11,7 @@ Status: design only. No authentication or tenant isolation is implemented yet.
 
 ## Authentication
 
-Use a server-side authentication mechanism with short-lived access credentials and rotation/revocation for refresh credentials. Passwords, if supported, must be salted and hashed using a modern password hashing algorithm; never store plaintext passwords or tokens. Define session expiration, account recovery, email verification and rate limiting before exposing registration publicly.
+The initial API uses eight-hour, server-managed opaque bearer sessions and salted scrypt password hashes. Raw tokens are never stored in the database. There is no public registration endpoint. Before exposing public registration or production customer data, implement account recovery, email verification, ingress rate limiting and monitoring.
 
 ## Authorization and tenant isolation
 
@@ -45,4 +45,4 @@ Ownership transfer requires explicit safeguards to prevent leaving an organizati
 - Role changes and revoked sessions take effect consistently.
 - API integration tests cover cross-tenant access, role escalation and organization switching.
 
-Do not consider this design implemented until migration, code and tests pass CI.
+The initial authentication and organization-read boundary must pass CI before merge. The remaining migration plan is future scope, not a claim that every tenant-owned business module is already protected.
