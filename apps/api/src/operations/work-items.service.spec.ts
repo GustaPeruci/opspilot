@@ -1,4 +1,4 @@
-import { ConflictException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
 import { WorkItemsService } from './work-items.service';
 
 describe('WorkItemsService', () => {
@@ -27,6 +27,11 @@ describe('WorkItemsService', () => {
     expect(findFirst).toHaveBeenCalledWith({
       where: { organizationId: 'org-b', id: 'item-a' },
     });
+  });
+
+  it('rejects whitespace-only titles without writing to the database', () => {
+    expect(() => service.create('org-a', '   ')).toThrow(BadRequestException);
+    expect(create).not.toHaveBeenCalled();
   });
 
   it('rejects invalid status changes', async () => {
