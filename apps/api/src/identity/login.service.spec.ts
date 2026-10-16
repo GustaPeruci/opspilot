@@ -13,7 +13,7 @@ describe('LoginService', () => {
 
   beforeEach(() => {
     findUnique.mockReset();
-    update.mockReset().mockResolvedValue({});
+    update.mockReset().mockResolvedValue({ failedLoginAttempts: 5 });
     issueForVerifiedUser.mockReset().mockResolvedValue('issued-token');
   });
 
@@ -44,9 +44,14 @@ describe('LoginService', () => {
       failedLoginAttempts: 4, lockedUntil: null,
     });
     await expect(service.login('user@example.test', 'invalid-password-123')).rejects.toThrow(UnauthorizedException);
-    expect(update).toHaveBeenCalledWith({
+    expect(update).toHaveBeenNthCalledWith(1, {
       where: { id: 'u1' },
-      data: { failedLoginAttempts: 5, lockedUntil: expect.any(Date) },
+      data: { failedLoginAttempts: { increment: 1 } },
+      select: { failedLoginAttempts: true },
+    });
+    expect(update).toHaveBeenNthCalledWith(2, {
+      where: { id: 'u1' },
+      data: { lockedUntil: expect.any(Date) },
     });
     expect(issueForVerifiedUser).not.toHaveBeenCalled();
   });
