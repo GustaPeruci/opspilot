@@ -1,4 +1,4 @@
-import { Body, Controller, Headers, HttpCode, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Header, HttpCode, Post, Req, UseGuards } from '@nestjs/common';
 import { IsEmail, IsString, MaxLength, MinLength } from 'class-validator';
 import { LoginService } from './login.service';
 import { SessionAuthGuard } from './session-auth.guard';
@@ -23,6 +23,7 @@ export class AuthController {
   ) {}
 
   @Post('login')
+  @Header('Cache-Control', 'no-store')
   @HttpCode(200)
   async login(@Body() body: LoginDto) {
     return this.loginService.login(body.email, body.password);
