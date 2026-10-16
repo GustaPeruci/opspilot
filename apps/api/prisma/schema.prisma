@@ -23,6 +23,9 @@ enum MembershipStatus {
 model User {
   id          String       @id @default(uuid())
   email       String       @unique
+  passwordHash String?
+  failedLoginAttempts Int @default(0)
+  lockedUntil DateTime?
   memberships Membership[]
   sessions    Session[]
   createdAt   DateTime     @default(now())
