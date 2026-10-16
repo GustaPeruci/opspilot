@@ -75,5 +75,8 @@ describe('Work items (e2e)', () => {
     await request(app.getHttpServer()).get(base).set('Authorization', `Bearer ${token}`).expect(200);
     await request(app.getHttpServer()).post(base)
       .set('Authorization', `Bearer ${token}`).send({ title: 'Forbidden' }).expect(403);
+    const existing = await prisma.workItem.findFirstOrThrow({ where: { organizationId } });
+    await request(app.getHttpServer()).patch(`${base}/${existing.id}/status`)
+      .set('Authorization', `Bearer ${token}`).send({ status: 'CANCELED' }).expect(403);
   });
 });
