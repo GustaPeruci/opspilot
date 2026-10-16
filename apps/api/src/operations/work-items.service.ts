@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { WorkItemStatus } from '@prisma/client';
 import { PrismaService } from '../database/prisma.service';
 
@@ -30,8 +30,10 @@ export class WorkItemsService {
   }
 
   create(organizationId: string, title: string, description?: string) {
+    const normalizedTitle = title.trim();
+    if (!normalizedTitle) throw new BadRequestException('Title cannot be blank');
     return this.prisma.workItem.create({
-      data: { organizationId, title: title.trim(), description: description?.trim() },
+      data: { organizationId, title: normalizedTitle, description: description?.trim() },
     });
   }
 
