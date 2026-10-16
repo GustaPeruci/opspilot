@@ -1,0 +1,199 @@
+/* FORGE v0.1 — portable, semantic CSS foundation */
+:root, [data-theme="light"] {
+  color-scheme: light;
+  --fg-canvas:#F8F9F6; --fg-surface:#FFFFFF; --fg-surface-raised:#FFFFFF; --fg-surface-muted:#F0F2ED;
+  --fg-text:#20292B; --fg-text-secondary:#586568; --fg-text-muted:#586568;
+  --fg-border:#D8DFDA; --fg-border-strong:#9AA9A5;
+  --fg-accent:#195D73; --fg-accent-hover:#12495C; --fg-accent-soft:#E0EEF0; --fg-on-accent:#FFFFFF;
+  --fg-focus:#237A91; --fg-success:#25775B; --fg-warning:#98651C; --fg-danger:#A5453B;
+}
+[data-theme="dark"] {
+  color-scheme: dark;
+  --fg-canvas:#111719; --fg-surface:#1B2325; --fg-surface-raised:#253033; --fg-surface-muted:#202A2C;
+  --fg-text:#EEF2ED; --fg-text-secondary:#B5C2BF; --fg-text-muted:#92A29F;
+  --fg-border:#364346; --fg-border-strong:#637471;
+  --fg-accent:#77B9C5; --fg-accent-hover:#9CCDD5; --fg-accent-soft:#213E45; --fg-on-accent:#102328;
+  --fg-focus:#77B9C5; --fg-success:#73C6A3; --fg-warning:#E0B873; --fg-danger:#E9958B;
+}
+:root {--fg-space-1:4px;--fg-space-2:8px;--fg-space-3:12px;--fg-space-4:16px;--fg-space-6:24px;--fg-space-8:32px;--fg-radius-sm:4px;--fg-radius-md:6px;--fg-radius-lg:10px;--fg-motion-fast:100ms;--fg-motion-normal:160ms;--fg-font-ui:Inter,Arial,sans-serif;--fg-font-display:'IBM Plex Sans',Arial,sans-serif;--fg-font-mono:'IBM Plex Mono',monospace}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--fg-canvas);color:var(--fg-text);font:14px/1.5 var(--fg-font-ui);transition:background 160ms,color 160ms}
+button,input,select{font:inherit}
+:focus-visible{outline:2px solid var(--fg-focus);outline-offset:2px}
+.fg-eyebrow{font:500 11px/1.4 var(--fg-font-mono);letter-spacing:.11em;text-transform:uppercase;color:var(--fg-text-secondary)}
+.fg-heading{font:500 clamp(28px,3vw,40px)/1.08 var(--fg-font-display);letter-spacing:-.035em;margin:0}
+.fg-rule{border:0;border-top:1px solid var(--fg-border);margin:24px 0}
+.fg-button{border:1px solid var(--fg-border-strong);border-radius:4px;background:var(--fg-surface);color:var(--fg-text);min-height:36px;padding:7px 14px;cursor:pointer;transition:background 100ms,border-color 100ms}
+.fg-button:hover{background:var(--fg-surface-muted)}
+.fg-button--primary{background:var(--fg-accent);border-color:var(--fg-accent);color:var(--fg-on-accent)}
+.fg-button--primary:hover{background:var(--fg-accent-hover)}
+.fg-input{background:var(--fg-surface);color:var(--fg-text);border:1px solid var(--fg-border-strong);border-radius:4px;min-height:36px;padding:7px 10px}
+.fg-input::placeholder{color:var(--fg-text-muted)}
+.fg-panel{background:var(--fg-surface);border:1px solid var(--fg-border);border-radius:4px}
+.fg-table{width:100%;border-collapse:collapse;text-align:left;font-size:13px}
+.fg-table th{font:500 11px var(--fg-font-mono);letter-spacing:.04em;text-transform:uppercase;color:var(--fg-text-secondary);background:var(--fg-surface-muted)}
+.fg-table th,.fg-table td{padding:10px 12px;border-bottom:1px solid var(--fg-border)}
+.fg-table tr:hover td{background:var(--fg-surface-muted)}
+.fg-number{font-family:var(--fg-font-mono);font-variant-numeric:tabular-nums}
+.fg-status{font:500 11px var(--fg-font-mono);display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+.fg-status::before{content:'';width:6px;height:6px;background:currentColor;border-radius:50%}
+.fg-status--success{color:var(--fg-success)}.fg-status--warning{color:var(--fg-warning)}.fg-status--danger{color:var(--fg-danger)}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* FORGE v0.2 component extensions */
+.fg-button--quiet{border-color:transparent;background:transparent}.fg-button--quiet:hover{background:var(--fg-surface-muted)}
+.fg-button--danger{color:var(--fg-danger);border-color:var(--fg-danger)}
+.fg-button:disabled,.fg-input:disabled{opacity:.45;cursor:not-allowed}
+.fg-field{display:grid;gap:6px}.fg-field>label{font-size:12px;font-weight:600}.fg-field small{color:var(--fg-text-secondary)}
+.fg-textarea{min-height:88px;resize:vertical}.fg-check{display:inline-flex;align-items:center;gap:8px;cursor:pointer}
+.fg-chip{border:1px solid var(--fg-border);padding:3px 8px;font:11px var(--fg-font-mono);display:inline-flex;align-items:center;gap:7px;background:var(--fg-surface)}
+.fg-chip--selected{border-color:var(--fg-accent);color:var(--fg-accent);background:var(--fg-accent-soft)}
+.fg-notice{border-left:3px solid var(--fg-accent);padding:12px 16px;background:var(--fg-surface-muted)}
+.fg-notice--warning{border-left-color:var(--fg-warning)}.fg-notice--danger{border-left-color:var(--fg-danger)}
+.fg-skeleton{height:14px;background:var(--fg-surface-muted);border-radius:2px;animation:fg-pulse 1.3s ease-in-out infinite alternate}@keyframes fg-pulse{to{opacity:.4}}
+.fg-tabs{display:flex;gap:22px;border-bottom:1px solid var(--fg-border)}.fg-tabs button{background:none;border:0;border-bottom:2px solid transparent;padding:12px 0;color:var(--fg-text-secondary);cursor:pointer}.fg-tabs button[aria-selected=true]{color:var(--fg-accent);border-bottom-color:var(--fg-accent)}
+.fg-table[data-density=compact] td,.fg-table[data-density=compact] th{padding:6px 10px}.fg-table[data-density=comfortable] td,.fg-table[data-density=comfortable] th{padding:15px 14px}
+
+/* FORGE v0.3: accessible interaction primitives */
+.fg-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 0}
+.fg-menu-wrap{position:relative;display:inline-block}
+.fg-menu{position:absolute;z-index:30;top:calc(100% + 5px);left:0;min-width:210px;padding:5px;background:var(--fg-surface-raised);border:1px solid var(--fg-border-strong);box-shadow:0 12px 28px #0002}
+.fg-menu[hidden],.fg-backdrop[hidden],.fg-dialog[hidden]{display:none!important}
+.fg-menu button{width:100%;text-align:left;display:block;background:none;color:var(--fg-text);border:0;padding:9px 12px;cursor:pointer}
+.fg-menu button:hover,.fg-menu button:focus-visible{background:var(--fg-surface-muted)}
+.fg-backdrop{position:fixed;inset:0;background:#071316a8;z-index:49}
+.fg-dialog{position:fixed;z-index:50;inset:50% auto auto 50%;transform:translate(-50%,-50%);width:min(520px,calc(100vw - 32px));background:var(--fg-surface-raised);color:var(--fg-text);border:1px solid var(--fg-border-strong);box-shadow:0 20px 65px #0004;padding:24px}
+.fg-dialog__header{display:flex;align-items:start;justify-content:space-between;gap:16px}.fg-dialog__footer{display:flex;justify-content:flex-end;gap:8px;margin-top:22px}
+.fg-datagrid{overflow-x:auto;border:1px solid var(--fg-border)}
+.fg-sort{background:transparent;border:0;color:inherit;cursor:pointer;text-align:left;font:inherit;text-transform:inherit;letter-spacing:inherit;padding:0}
+.fg-sort[aria-sort=ascending]::after{content:' ↑'}.fg-sort[aria-sort=descending]::after{content:' ↓'}
+.fg-sidebar{background:var(--fg-surface);border-right:1px solid var(--fg-border);padding:18px;display:grid;align-content:start;gap:6px}
+.fg-nav-link{display:flex;justify-content:space-between;gap:10px;padding:9px 12px;text-decoration:none;color:var(--fg-text-secondary);border-left:2px solid transparent}
+.fg-nav-link:hover{background:var(--fg-surface-muted)}.fg-nav-link[aria-current=page]{border-left-color:var(--fg-accent);background:var(--fg-accent-soft);color:var(--fg-text)}
+.fg-breadcrumb{display:flex;gap:8px;align-items:center;color:var(--fg-text-secondary);font:11px var(--fg-font-mono)}
+.fg-page{max-width:1200px;margin:auto;padding:30px 36px}.fg-section{margin:32px 0}.fg-section-title{font:500 18px var(--fg-font-display);margin:0 0 12px}
+.fg-filter-summary{color:var(--fg-text-secondary);font-size:12px}
+@media(max-width:780px){.fg-page{padding:18px}.fg-dialog{padding:16px}}
+
+/* FORGE v0.4: component contracts and catalog */
+.fg-spinner{display:inline-block;width:12px;height:12px;margin-right:7px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:fg-spin .65s linear infinite;vertical-align:-2px}@keyframes fg-spin{to{transform:rotate(360deg)}}
+.fg-button[aria-busy=true]{cursor:progress}
+.fg-button:focus-visible,.fg-input:focus-visible{outline:2px solid var(--fg-focus);outline-offset:2px}
+.fg-button--sm{min-height:28px;padding:4px 10px;font-size:12px}.fg-button--lg{min-height:44px;padding:10px 18px}
+.fg-field[aria-invalid=true] .fg-input,.fg-input[aria-invalid=true]{border-color:var(--fg-danger)}
+.fg-catalog-layout{display:grid;grid-template-columns:220px minmax(0,1fr);min-height:100vh}
+.fg-catalog-sidebar{border-right:1px solid var(--fg-border);padding:24px 18px;background:var(--fg-surface)}
+.fg-catalog-sidebar a{display:block;padding:8px 10px;color:var(--fg-text-secondary);text-decoration:none;border-left:2px solid transparent}
+.fg-catalog-sidebar a:hover,.fg-catalog-sidebar a[aria-current=page]{color:var(--fg-text);background:var(--fg-surface-muted);border-left-color:var(--fg-accent)}
+.fg-catalog-main{max-width:1160px;width:100%;padding:42px clamp(18px,4vw,56px);margin:auto}
+.fg-catalog-section{padding:32px 0;border-top:1px solid var(--fg-border)}
+.fg-catalog-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px}
+.fg-swatch{height:54px;border:1px solid var(--fg-border);margin-bottom:8px}
+.fg-demo{padding:22px;background:var(--fg-surface);border:1px solid var(--fg-border);display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.fg-code{padding:12px;background:var(--fg-surface-muted);border:1px solid var(--fg-border);overflow:auto;font:12px/1.6 var(--fg-font-mono)}
+@media(max-width:720px){.fg-catalog-layout{grid-template-columns:1fr}.fg-catalog-sidebar{border-right:0;border-bottom:1px solid var(--fg-border)}.fg-catalog-main{padding:24px 18px}}
+
+/* FORGE v0.5 adapters */
+.fg-button{display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.fg-spinner{display:inline-block;width:13px;height:13px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:fg-spin .7s linear infinite}
+@keyframes fg-spin{to{transform:rotate(360deg)}}
+.fg-input[aria-invalid="true"]{border-color:var(--fg-danger)}
+
+
+/* FORGE v1.2: consistent native checkbox, switch, select */
+.fg-choice-field{display:grid;gap:4px}.fg-choice-field small{color:var(--fg-text-secondary);font-size:12px}
+.fg-check,.fg-switch{display:inline-flex;align-items:center;gap:10px;min-height:32px;width:fit-content;cursor:pointer}
+.fg-check:has(:disabled),.fg-switch:has(:disabled){opacity:.5;cursor:not-allowed}
+.fg-checkbox{width:16px;height:16px;margin:0;accent-color:var(--fg-accent);cursor:inherit}
+.fg-switch{position:relative}
+.fg-switch-input{position:absolute;inset-inline-start:0;top:50%;transform:translateY(-50%);opacity:0;width:36px;height:20px;margin:0;z-index:1;cursor:inherit}
+.fg-switch-track{pointer-events:none;width:36px;height:20px;border-radius:999px;border:1px solid var(--fg-border-strong);background:var(--fg-surface-muted);position:relative;transition:background var(--fg-motion-normal)}
+.fg-switch-track::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--fg-text-secondary);transition:transform var(--fg-motion-normal)}
+.fg-switch-input:checked+.fg-switch-track{background:var(--fg-accent);border-color:var(--fg-accent)}
+.fg-switch-input:checked+.fg-switch-track::after{transform:translateX(16px);background:var(--fg-on-accent)}
+.fg-switch-input:focus-visible+.fg-switch-track{outline:2px solid var(--fg-focus);outline-offset:3px}
+.fg-select{width:100%;cursor:pointer}
+.fg-select:disabled{opacity:.5;cursor:not-allowed}
+
+
+/* Forge v1.2 — keyboard-operable tabs */
+.fg-tabs-root{width:100%;min-width:0}
+.fg-tabs-root .fg-tabs{display:flex;gap:16px;border-bottom:1px solid var(--fg-border);overflow-x:auto}
+.fg-tabs-root .fg-tabs button{color:var(--fg-text-secondary);white-space:nowrap}
+.fg-tabs-root .fg-tabs button[aria-selected="true"]{color:var(--fg-accent);border-bottom-color:var(--fg-accent)}
+.fg-tabs-root .fg-tabs button:disabled{opacity:.45;cursor:not-allowed}
+.fg-tab-panel{padding:20px 4px;color:var(--fg-text)}
+
+
+/* Forge v1.2 — dialog and live notification feedback */
+.fg-modal{position:fixed;inset:0;margin:auto;width:min(520px,calc(100vw - 32px));max-height:min(85vh,800px);overflow:auto;border:1px solid var(--fg-border-strong);border-radius:var(--fg-radius-lg);padding:0;background:var(--fg-surface-raised);color:var(--fg-text);box-shadow:0 24px 70px #0005}
+.fg-modal::backdrop{background:#08191c9c}
+.fg-modal-content{padding:24px}
+.fg-modal .fg-dialog__header h2{font:500 21px var(--fg-font-display);margin:0}
+.fg-modal .fg-dialog__header .fg-button{font-size:23px;line-height:1;min-width:36px}
+.fg-modal-body{padding-top:16px;color:var(--fg-text-secondary)}
+.fg-modal .fg-dialog__footer:empty{display:none}
+.fg-toast{display:flex;align-items:center;gap:16px;justify-content:space-between;width:min(380px,100%);background:var(--fg-surface-raised);color:var(--fg-text);padding:12px 16px;border:1px solid var(--fg-border);border-left:3px solid var(--fg-accent);border-radius:var(--fg-radius-sm);box-shadow:0 6px 20px #0001}
+.fg-toast--success{border-left-color:var(--fg-success)}
+.fg-toast--warning{border-left-color:var(--fg-warning)}
+.fg-toast--danger{border-left-color:var(--fg-danger)}
+.fg-toast-message{flex:1}
+.fg-toast-close{background:none;border:0;color:inherit;min-height:32px;min-width:32px;font-size:21px;cursor:pointer}
+@media(max-width:520px){.fg-modal-content{padding:18px}}
+
+
+/* Ensure touch targets stay in the top hit-testing layer on narrow screens. */
+.fg-toast-close,.fg-modal .fg-dialog__footer .fg-button,.fg-modal .fg-dialog__header .fg-button{position:relative;z-index:2;flex-shrink:0;touch-action:manipulation}
+.fg-modal-content{position:relative;isolation:isolate}
+@media(max-width:520px){.catalog-stage .preview-center{min-width:0;width:100%}.fg-toast{width:100%;min-width:0}.fg-modal{width:calc(100dvw - 24px);max-width:calc(100dvw - 24px)}}
+
+
+/* Keep the modal in a predictable viewport-centered top-layer rectangle. */
+.fg-modal{inset:auto;left:50%;top:50%;right:auto;bottom:auto;transform:translate(-50%,-50%);margin:0}
+.catalog-toast-demo{position:fixed;right:clamp(16px,3vw,32px);bottom:24px;z-index:150;max-width:calc(100vw - 32px);width:min(380px,calc(100vw - 32px))}
+.catalog-toast-demo .fg-toast{width:100%}
+
+
+/* Forge dropdown action menu */
+.fg-dropdown{position:relative;display:inline-block;min-width:0}
+.fg-dropdown-menu{position:absolute;z-index:30;top:calc(100% + 6px);left:0;min-width:max(100%,200px);max-width:min(320px,calc(100vw - 32px));padding:6px;background:var(--fg-surface-raised);border:1px solid var(--fg-border-strong);border-radius:6px;box-shadow:0 10px 28px #0002;display:grid;gap:2px}
+.fg-dropdown-menu button{font:inherit;text-align:left;padding:10px 12px;border:0;border-radius:4px;background:transparent;color:var(--fg-text);cursor:pointer}
+.fg-dropdown-menu button:hover,.fg-dropdown-menu button:focus-visible{background:var(--fg-accent-soft);outline:2px solid var(--fg-focus);outline-offset:-2px}
+.fg-dropdown-menu button:disabled{opacity:.45;cursor:not-allowed}
+
+
+.fg-data-table{width:100%;min-width:0;border:1px solid var(--fg-border);border-radius:var(--fg-radius-md);background:var(--fg-surface);overflow:hidden}
+.fg-data-table-toolbar,.fg-data-table-footer{display:flex;align-items:end;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:14px 16px}
+.fg-data-table-search,.fg-data-table-size{display:grid;gap:6px;color:var(--fg-text-secondary);font-size:12px}
+.fg-data-table-search{flex:1;min-width:min(240px,100%)}
+.fg-data-table-size{min-width:120px}
+.fg-data-table-scroll{width:100%;overflow:auto}
+.fg-data-table table{width:100%;min-width:460px;border-collapse:collapse;text-align:left}
+.fg-data-table caption{text-align:left;padding:10px 16px;color:var(--fg-text-secondary);font-size:12px}
+.fg-data-table th{background:var(--fg-surface-muted);color:var(--fg-text);font-size:12px;white-space:nowrap}
+.fg-data-table th,.fg-data-table td{padding:11px 16px;border-top:1px solid var(--fg-border)}
+.fg-data-table th button{border:0;padding:0;background:transparent;color:inherit;cursor:pointer;font:inherit;font-weight:650}
+.fg-data-table tbody tr:hover{background:var(--fg-surface-muted)}
+.fg-data-table-empty{text-align:center;color:var(--fg-text-secondary);padding:24px!important}
+.fg-data-table-footer{align-items:center;border-top:1px solid var(--fg-border);color:var(--fg-text-secondary);font-size:12px}
+.fg-data-table-pagination{display:flex;align-items:center;gap:10px}
+.fg-data-table-pagination button{padding:6px 10px;border:1px solid var(--fg-border-strong);background:var(--fg-surface);color:var(--fg-text);border-radius:4px;cursor:pointer}
+.fg-data-table-pagination button:disabled{opacity:.45;cursor:not-allowed}
+
+
+/* Forge RadioGroup and Tooltip */
+.fg-radio-group{border:0;margin:0;padding:0;display:grid;gap:10px;min-width:0}
+.fg-radio-group legend{font-size:13px;font-weight:650;color:var(--fg-text);margin-bottom:10px}
+.fg-radio-choice{display:flex;align-items:center;gap:10px;width:fit-content;cursor:pointer;color:var(--fg-text)}
+.fg-radio-choice input{width:16px;height:16px;margin:0;accent-color:var(--fg-accent);cursor:inherit}
+.fg-radio-choice:has(input:disabled){cursor:not-allowed;opacity:.5}
+.fg-radio-group:disabled{opacity:.55}
+.fg-tooltip{position:relative;display:inline-flex;align-items:center}
+.fg-tooltip-trigger{display:inline-flex;align-items:center;gap:4px;border-radius:3px}
+.fg-tooltip-content{position:absolute;z-index:60;bottom:calc(100% + 9px);left:50%;transform:translate(-50%,3px);max-width:min(280px,90vw);width:max-content;visibility:hidden;opacity:0;pointer-events:none;background:var(--fg-surface-raised);color:var(--fg-text);border:1px solid var(--fg-border-strong);box-shadow:0 4px 18px #0002;border-radius:var(--fg-radius-sm);padding:8px 11px;font:12px/1.5 var(--fg-font-ui);transition:opacity var(--fg-motion-fast),transform var(--fg-motion-fast)}
+.fg-tooltip:hover .fg-tooltip-content,.fg-tooltip:focus-within .fg-tooltip-content{visibility:visible;opacity:1;pointer-events:auto;transform:translate(-50%,0)}
+@media(prefers-reduced-motion:reduce){.fg-tooltip-content{transition:none}}
+
+
+/* Keep hover help dismissible without moving keyboard focus. */
+.fg-tooltip.fg-tooltip--dismissed .fg-tooltip-content{visibility:hidden;opacity:0;pointer-events:none}
