@@ -1,22 +1,35 @@
 # Authentication and organization access
 
-## Trust boundary
+## Implemented boundary
 
-The existing organization guard resolves active membership from PostgreSQL, but it must only run **after** authentication verifies the caller's identity. Never accept a user ID, role, or membership from a request header, URL parameter, or body as proof of identity.
+- `POST /auth/login` validates email/password credentials using salted Node.js scrypt hashes.
+- `POST /auth/logout` revokes the current opaque bearer session.
+- `GET /organizations/:organizationId` requires `SessionAuthGuard` followed by `OrganizationAccessGuard`.
+- Sessions are stored as SHA-256 digests; raw tokens are returned only at login.
+- Session tokens expire after eight hours. Suspended organization memberships are denied immediately.
+- Five failed password attempts lock the account for fifteen minutes.
+- Passwords are never accepted from headers or URL parameters. The server derives identity from verified session storage.
+- There is no public sign-up endpoint. Initial OWNER accounts and organizations are created by a trusted server-side bootstrap script.
 
-## Implementation milestones
+## Local bootstrap
 
-1. Choose and configure a server-side authentication provider/session mechanism with signed, expiring credentials and explicit issuer/audience validation where applicable.
-2. Establish a trusted principal (`request.user.userId`) using a NestJS authentication guard; fail closed for missing or invalid credentials.
-3. Register a lifecycle-managed Prisma client and the membership resolver through NestJS dependency injection.
-4. Require both authentication and organization authorization on routes with `organizationId` parameters.
-5. Add tests for missing, expired, tampered credentials; suspended memberships; role restrictions; cross-organization requests; and membership revocation.
-6. Document environment variables, secret rotation, and deployment requirements before enabling production use.
+Apply migrations before provisioning:
 
-## Current limitation
+```bash
+pnpm --filter @opspilot/api exec prisma migrate deploy
+pnpm --filter @opspilot/api exec tsx src/identity/bootstrap-owner.ts admin@example.com demo-org "Demo Organization" < /secure/password-file
+```
 
-The authorization guard and resolver are not wired to an authentication guard or application routes. They are not a complete security boundary yet. Do not expose protected data until the milestones above are implemented and tested.
+Use a temporary, access-restricted password file and remove it securely after provisioning. Never commit credentials, place them in shell command arguments, or run the bootstrap script from a public HTTP endpoint. The script creates a new user and organization, and fails if either unique identifier already exists.
 
-## Integration status
+## Production hardening before deployment
 
-The identity branch is based on the merged foundation. Session verification and tenant authorization exist, but no trusted login issuer is exposed yet. Keep the PR in draft until credential verification, abuse controls, integration tests and a clean CI run are complete.
+- Enforce TLS and an ingress/API-gateway rate limit for `/auth/login` (including unknown emails); account lockout alone is insufficient, especially across concurrent requests and multiple replicas.
+- Store and rotate secrets using the deployment platform's secret manager; do not log bearer tokens.
+- Configure strict allowed origins and avoid browser token storage accessible to injected scripts.
+- Add security monitoring, password reset, compromised-session revocation and periodic cleanup of expired sessions.
+- Consider stronger account recovery/MFA and independent security review before handling real customer data.
+
+## Validation
+
+Unit tests cover password hashing, login decisions, session issuance and revocation, guard behavior and tenant permissions. PostgreSQL E2E tests exercise login, logout, cross-tenant access and suspended memberships. The PR should remain a draft until the latest CI succeeds and the diff contains only identity changes.
